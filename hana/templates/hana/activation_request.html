@@ -1,0 +1,11 @@
+{% autoescape off %}
+Hi {{ user.username }},
+
+Please click the following link to confirm your registration to get access to hana application:
+http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+
+This email was generated automatically. Thus, please don't answer.
+
+Regards,
+
+{% endautoescape %}
