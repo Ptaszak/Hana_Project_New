@@ -57,6 +57,7 @@ urlpatterns = [
     path('reset-password/complete', auth_views.PasswordResetCompleteView.as_view(
         template_name='registration/password_complete_reset.html'),
         name='reset_password_complete'),
+    path('excel_upload', ex_views.ExcelUploadView.as_view(), name='excel-upload'),
 ]
 
 if settings.DEBUG:
