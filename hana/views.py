@@ -19,9 +19,16 @@ from django.contrib import messages
 from .forms import *
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.core.mail import EmailMessage
-from django.conf import settings
+import openpyxl
+from django.core.exceptions import ValidationError
+import os
 
-from django.contrib.auth import views as auth_views
+def validate_file_extension(value):
+    ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
+    valid_extensions = ['.xlsx', '.xls']
+    if not ext.lower() in valid_extensions:
+        raise ValidationError('Unsupported file extension.')
+
 
 class HomeView(View):
     def get(self,request):
@@ -188,3 +195,28 @@ class PasswordResetView(View):
             login(request, user)
             return redirect('index')
         return render(request, "exercises/user_login.html", {"form": form})
+
+
+class ExcelUploadView(View):
+    def get(self, request):
+        return render(request, "hana/excel_upload.html")
+
+    def post(self, request):
+        excel_file = request.FILES['excel_file']
+        #  validations here to check extension or file size
+        validate_file_extension(excel_file)
+        wb = openpyxl.load_workbook(excel_file)
+        # getting a particular sheet by name out of many sheets
+        active_sheet = wb.active
+        print(active_sheet)
+
+        excel_data = list()
+        # iterating over the rows and
+        # getting value from each cell in row
+        for row in active_sheet.iter_rows(max_col=4):
+            row_data = list()
+            for cell in row:
+                row_data.append(str(cell.value))
+            excel_data.append(row_data)
+
+        return render(request, 'hana/excel_upload.html', {"excel_data": excel_data})
