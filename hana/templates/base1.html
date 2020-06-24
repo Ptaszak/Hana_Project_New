@@ -32,6 +32,8 @@
             <div class="navbar-nav mr-auto">
               <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
               <a class="nav-item nav-link" href="{% url 'excel-upload' %}">Load tasks</a>
+                <a class="nav-item nav-link" href="{% url 'user-list' %}">Employees</a>
+                <a class="nav-item nav-link" href="{% url 'post-create' %}">New Post</a>
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
@@ -39,7 +41,7 @@
                 <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
                 <a class="nav-item nav-link" href="{% url 'user-logout' %}">Logout <b>({{ user.get_username }})</b></a>
                 {% else %}
-                <a a class="nav-item nav-link" href="{% url 'user-login' %}">Login</a>
+                <a class="nav-item nav-link" href="{% url 'user-login' %}">Login</a>
                 <a class="nav-item nav-link" href="{% url 'signup' %}">Register</a>
                 {% endif %}
             </div>

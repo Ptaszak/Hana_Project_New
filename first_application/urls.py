@@ -23,7 +23,13 @@ from hana.tokens import account_activation_token
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', ex_views.HomeView.as_view(), name="home"),
+    path('', ex_views.PostListView.as_view(), name="home"),
+    path('user/<str:username>', ex_views.UserPostsListView.as_view(), name='user-posts'),
+    path('post/<int:pk>/', ex_views.PostDetailView.as_view(), name='post-detail'),
+    path('post/new/', ex_views.PostCreateView.as_view(), name='post-create'),
+    path('post/<int:pk>/update/', ex_views.PostUpdateView.as_view(), name='post-update'),
+    path('post/<int:pk>/delete/', ex_views.PostDeleteView.as_view(), name='post-delete'),
+    path('post/<int:pk>/comment/', ex_views.CommentCreateView.as_view(), name='add-comment'),
     path('signup/', ex_views.SignupView.as_view(), name="signup"),
     path('profile/', ex_views.UserView.as_view(), name='profile'),
     # path('sent/', ex_views.ActivationSentView.as_view(), name="activation_sent"),
@@ -58,6 +64,7 @@ urlpatterns = [
         template_name='registration/password_complete_reset.html'),
         name='reset_password_complete'),
     path('excel_upload', ex_views.ExcelUploadView.as_view(), name='excel-upload'),
+    path('user_list', ex_views.UsersListView.as_view(), name = "user-list"),
 ]
 
 if settings.DEBUG:
