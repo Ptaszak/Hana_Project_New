@@ -12,8 +12,6 @@
             </div>
             <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
             <p class="article-content">{{ post.content }}</p>
-              <a href="{% url 'add-comment' pk=post.id %}"><button type="button" class="btn btn-secondary btn-sm">Add comment</button></a>
-                 <a class >Comments: {{ post.comment_set.all.count }}</a>
           </div>
         </article>
     {% endfor %}
@@ -38,4 +36,4 @@
       {% endif %}
 
     {% endif %}
-{% endblock content %}
+{% endblock content %}l>

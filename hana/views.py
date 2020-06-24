@@ -13,15 +13,17 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
+from django.views.generic import CreateView, DeleteView, UpdateView, FormView, ListView, DetailView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import *
-from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
 from django.core.mail import EmailMessage
 import openpyxl
 from django.core.exceptions import ValidationError
 import os
+from .models import *
+
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
@@ -31,20 +33,22 @@ def validate_file_extension(value):
 
 
 class HomeView(View):
-    def get(self,request):
+    def get(self, request):
         return render(request, 'base1.html')
 
+
 class UserView(LoginRequiredMixin, View):
-    def get(self,request):
-        u_form = UserUpdateForm(instance= request.user)
+    def get(self, request):
+        u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
         ctx = {
             "u_form": u_form,
             "p_form": p_form
         }
         return render(request, "hana/profile.html", ctx)
-    def post(self,request):
-        u_form = UserUpdateForm(request.POST, instance= request.user)
+
+    def post(self, request):
+        u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
@@ -60,9 +64,11 @@ class UserView(LoginRequiredMixin, View):
             }
             return render(request, "hana/profile.html", ctx)
 
+
 '''class ActivationSentView(View):
     def get(self, request):
         return render(request, 'hana/activation_sent.html')'''
+
 
 class ActivateView(View):
     def get(self, request, uidb64, token, *args, **kwargs):
@@ -97,12 +103,11 @@ class SignupView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            group = Group.objects.get(name = "Employee")
+            group = Group.objects.get(name="Employee")
             user = form.save(commit=False)
             user.is_active = False  # Deactivate account till it is confirmed
             user.save()
             group.user_set.add(user)
-
 
             current_site = get_current_site(request)
             subject = 'Activate Your hana-Account'
@@ -111,7 +116,7 @@ class SignupView(View):
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
-                })
+            })
             to_email = form.cleaned_data.get('email')
             email = EmailMessage(subject, message, to=[to_email])
             email.send()
@@ -120,13 +125,14 @@ class SignupView(View):
 
         return render(request, self.template_name, {'form': form})
 
+
 class UserLoginView(View):
     def get(self, request):
         form = UserLoginForm()
         return render(request, "hana/login.html", {'form': form})
 
     def post(self, request):
-        form = UserLoginForm(request.POST or None )
+        form = UserLoginForm(request.POST or None)
         if form.is_valid():  # uruchomienie walidacji
             user = form.authenticate_user()
             if user is not None:
@@ -149,6 +155,7 @@ class UserLogoutView(View):
         logout(request)
         messages.info(request, "You are now logged out")
         return redirect(reverse('home'))
+
 
 '''
 class UserCreateView(CreateView):
@@ -179,9 +186,10 @@ class SignUpView(View):
             return render(request, "hana/signup.html", {'form': form})
 '''
 
+
 class PasswordResetView(View):
     def get(self, request, pk):
-        user = get_object_or_404(User, pk = pk)
+        user = get_object_or_404(User, pk=pk)
         form = PasswordResetForm()
         return render(request, "hana/login.html", {"form": form})
 
@@ -220,3 +228,87 @@ class ExcelUploadView(View):
             excel_data.append(row_data)
 
         return render(request, 'hana/excel_upload.html', {"excel_data": excel_data})
+
+
+class UsersListView(View):
+    def get(self, request):
+        users = User.objects.all()
+        return render(request, "hana/users_list.html", {'users': users})
+
+
+class PostListView(ListView):
+    model = Post
+    template_name = 'hana/home.html'
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+    paginate_by = 5
+
+
+class UserPostsListView(ListView):
+    model = Post
+    template_name = 'hana/user_posts.html'
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+    paginate_by = 5
+
+    def get_queryset(self):
+        user = get_object_or_404(User, username=self.kwargs.get("username"))
+        return Post.objects.filter(author=user).order_by('-date_posted')
+
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'hana/post_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['now'] = timezone.now()
+        return context
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super(PostCreateView, self).form_valid(form)
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:
+            return True
+        return False
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    success_url = '/'
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:
+            return True
+        return False
+
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    fields = ['title', 'content']
+
+
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        form.instance.post = post
+        return super().form_valid(form)
+
