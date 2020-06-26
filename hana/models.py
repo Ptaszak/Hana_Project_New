@@ -40,3 +40,21 @@ class Comment(models.Model):
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'pk': self.post.id})
 
+TASK_STATUS = (
+    (0, "not assigned"),
+    (1, "assigned"),
+    (2, "in progres"),
+    (3, "done"),
+    (4, "cancelled")
+
+)
+class Task(models.Model):
+    name = models.CharField(max_length=248)
+    quantity = models.IntegerField()
+    norm = models.IntegerField()
+    priority = models.NullBooleanField(blank=True, null=True)
+    status = models.IntegerField(choices=TASK_STATUS, default=TASK_STATUS[0][0])
+    placed_date = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.name

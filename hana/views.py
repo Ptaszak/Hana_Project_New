@@ -20,10 +20,15 @@ from .forms import *
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
 from django.core.mail import EmailMessage
 import openpyxl
+from openpyxl.styles import Font, Fill
 from django.core.exceptions import ValidationError
 import os
 from .models import *
-
+from pyexcel_xls import get_data as xls_get
+from pyexcel_xlsx import get_data as xlsx_get
+from django.utils.datastructures import MultiValueDictKeyError
+from .forms import SignUpForm
+import six
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
@@ -219,16 +224,19 @@ class ExcelUploadView(View):
         print(active_sheet)
 
         excel_data = list()
+        print(excel_data)
+
         # iterating over the rows and
         # getting value from each cell in row
-        for row in active_sheet.iter_rows(max_col=4):
+        for row in active_sheet.iter_rows(min_row=2, max_col=6):
             row_data = list()
             for cell in row:
                 row_data.append(str(cell.value))
             excel_data.append(row_data)
-
+            Task.objects.create(name=row_data[0], quantity=row_data[1],
+                                norm=row_data[2], priority=row_data[3],
+                                status=row_data[4], placed_date=row_data[5] )
         return render(request, 'hana/excel_upload.html', {"excel_data": excel_data})
-
 
 class UsersListView(View):
     def get(self, request):
@@ -305,10 +313,63 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     fields = ['title', 'content']
 
-
     def form_valid(self, form):
         post = get_object_or_404(Post, pk=self.kwargs['pk'])
         form.instance.author = self.request.user
         form.instance.post = post
         return super().form_valid(form)
+'''
+class ParseExcel(View):
+    def post(self, request, format=None):
+        try:
+            excel_file = request.FILES['files']
+        except MultiValueDictKeyError:
+            return redirect('home')
+
+        if (str(excel_file).split('.')[-1] == "xls"):
+            data = xls_get(excel_file, column_limit=7)
+        elif (str(excel_file).split('.')[-1] == "xlsx"):
+            data = xlsx_get(excel_file, column_limit=7)
+        else:
+            return redirect("home")
+
+        tasks = data["Task"]
+
+        if len(tasks > 1):  # we have task data
+            for task in tasks:
+                if (len(task) > 0):  # the row is not blank
+                    if (task[0] != "NO"):  # is not a header
+                        if (len(task) < 7):
+                            i = len(task)
+                            while (i < 7):
+                                task.append("")
+                                i += 1
+
+        c = Task.objects.filter(name=task[1])
+
+        if (c.count() == 0):
+            Task.objects.create(
+                name = task[1],
+                quantity = task[2],
+                norm = task[3],
+                priority = task[4],
+                status = task[5],
+                placed_date = task[6]
+            )
+
+            return render(request, 'hana/excel_sheet_upload.html', {"excel_file": excel_file})
+
+'''
+
+class ExcelTableView(ListView):
+    model = Task
+    template_name = 'hana/excel_view.html'
+    context_object_name = 'tasks'
+    paginate_by = 10
+
+class ExcelTableAddView(CreateView):
+    model = Task
+    fields = "__all__"
+    success_url = reverse_lazy('excel-table')
+
 

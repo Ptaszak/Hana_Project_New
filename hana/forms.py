@@ -124,3 +124,8 @@ class PasswordResetForm(forms.Form):
             raise forms.ValidationError(
                     'Podane hasła są różne'
                 )
+'''
+class ExcelFormToDb(forms.ModelForm):
+    class Meta:
+        model = Task
+'''
