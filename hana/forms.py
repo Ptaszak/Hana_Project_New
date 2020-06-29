@@ -4,21 +4,9 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Comment
+from .models import Profile, Comment, Task
+from dal import autocomplete
 
-
-
-'''
-class SignUpEmailForm(UserCreationForm):
-    first_name = forms.CharField(max_length=100, help_text=_('First Name'))
-    last_name = forms.CharField(max_length=100, help_text='Last Name')
-    email = forms.EmailField(max_length=150, help_text='Email')
-
-
-    class Meta:
-        model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2',)
-'''
 class UserLoginForm(forms.Form):
     email = forms.CharField(label = 'Email')
     password = forms.CharField(label = 'Hasło', widget = forms.PasswordInput)
@@ -124,8 +112,23 @@ class PasswordResetForm(forms.Form):
             raise forms.ValidationError(
                     'Podane hasła są różne'
                 )
-'''
-class ExcelFormToDb(forms.ModelForm):
+
+
+class AddEditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
-'''
+        exclude = ['created_by']
+        widgets = {
+            "due_date": forms.DateInput(attrs={'type':'date'}),
+            "completed_date": forms.DateInput(attrs={'type': 'date'}),
+            "name":forms.TextInput(),
+            "note": forms.Textarea(),
+        }
+# do przekazania w widoku
+        def clean_created_by(self):
+            return self.instance.created_by
+
+
+class SearchForm(forms.Form):
+    """Search."""
+    q = forms.CharField(widget=forms.widgets.TextInput(attrs={"size": 35}))

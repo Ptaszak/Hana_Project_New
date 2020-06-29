@@ -1,0 +1,16 @@
+{% extends "base1.html" %}
+{% block content %}
+
+    <div class="row">
+    <div class="col-sm-offset-2 col-sm-4">
+    <h3> Search page </h3>
+    <form method="get" action='{% url "search_result" %}'>
+        <input class="form-control" type="text" placeholder="Search" name="q" >
+        <br>
+        <button class="btn btn-primary" type="submit">Submit</button>
+        {% csrf_token %}
+    </form>
+    </div>
+    </div>
+
+{% endblock %}

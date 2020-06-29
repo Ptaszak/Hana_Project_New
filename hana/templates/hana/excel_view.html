@@ -7,29 +7,30 @@
     <tr>
       <th scope="col">ID</th>
       <th scope="col">Task name</th>
-      <th scope="col">Quantity</th>
-      <th scope="col">Norms</th>
+      <th scope="col">Created</th>
+      <th scope="col">Due date</th>
       <th scope="col">Priority</th>
       <th scope="col">Status</th>
-        <th scope="col">Date</th>
+      <th scope="col">Assigned</th>
     </tr>
   </thead>
   <tbody>
 {% for t in tasks %}
     <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ t.name }}</td>
-        <td>{{ t.quantity }}</td>
-        <td>{{ t.norm }}</td>
-        <td>{{ t.priority }}</td>
-        <td>{{ t.status }}</td>
+
+        <td>{{forloop.counter0|add:page_obj.start_index}}</td>
+        <td><a href="{% url 'task-update' t.id %}">{{ t.name }}</a></td>
         <td>{{ t.placed_date }}</td>
+        <td>{{ t.due_date|date }}</td>
+        <td>{{ t.priority }}</td>
+        <td>{{ t.get_status_display }}</td>
+        <td>{{ t.assigned_to}}</td>
     </tr>
 {% endfor %}
   </tbody>
 </table>
 <hr>
-    <a href="{% url 'excel-table-add' %}"><button type="button" class="btn btn-secondary">Add Task</button></a>
+    <a href="{% url 'task-add' %}"><button type="button" class="btn btn-secondary">Add Task</button></a>
    <hr>
     <p>
     {% if is_paginated %}

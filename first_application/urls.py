@@ -15,11 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, reverse_lazy
+
+import hana
 from hana import views as ex_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from hana.tokens import account_activation_token
+from hana.search import search
+
+app_name = "hana"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -64,10 +69,17 @@ urlpatterns = [
         template_name='registration/password_complete_reset.html'),
         name='reset_password_complete'),
     path('excel_upload', ex_views.ExcelUploadView.as_view(), name='excel-upload'),
-    #path ('parse_excel', ex_views.ParseExcel.as_view(), name= "excel"),
     path('user_list', ex_views.UsersListView.as_view(), name = "user-list"),
     path('excel_table', ex_views.ExcelTableView.as_view(), name = "excel-table"),
-    path('excel_table/add', ex_views.ExcelTableAddView.as_view(), name = "excel-table-add"),
+    path("task/add", ex_views.TaskAddView.as_view(), name="task-add"),
+    path("task/<int:pk>/", ex_views.TaskDetailView.as_view(), name="task-update"),
+    path("task/add/autocomplete/", ex_views.TaskAutocompleteView.as_view(), name = "task_autocomplete"),
+    path('tasks/<int:user_id>/', ex_views.EmployeeTaskView.as_view(), name="my-tasks"),
+    path('task/<int:pk>/delete', ex_views.TaskDeleteView.as_view(), name="task-delete"),
+    path("search/", ex_views.TaskSearchView.as_view(), name="search"),
+    #path("search_task/", ex_views.TaskSearchView2.as_view(), name="search"),
+    path("search_result/", ex_views.TaskSearchResultView.as_view(), name="search_result"),
+
 
 ]
 

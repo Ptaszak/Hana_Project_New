@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'hana.apps.HanaConfig',
     'crispy_forms',
     'widget_tweaks',
+    'dal',
+    'dal_select2',
 
 ]
 

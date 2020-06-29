@@ -13,11 +13,11 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from django.views.generic import CreateView, DeleteView, UpdateView, FormView, ListView, DetailView
-from django.contrib.auth import authenticate, login, logout
+from django.views.generic import CreateView, DeleteView, UpdateView, TemplateView, FormView, ListView, DetailView
 from django.contrib import messages
 from .forms import *
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
+from dal import autocomplete
 from django.core.mail import EmailMessage
 import openpyxl
 from openpyxl.styles import Font, Fill
@@ -28,6 +28,7 @@ from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from django.utils.datastructures import MultiValueDictKeyError
 from .forms import SignUpForm
+from django.db.models import Q
 import six
 
 def validate_file_extension(value):
@@ -68,11 +69,6 @@ class UserView(LoginRequiredMixin, View):
                 "p_form": p_form
             }
             return render(request, "hana/profile.html", ctx)
-
-
-'''class ActivationSentView(View):
-    def get(self, request):
-        return render(request, 'hana/activation_sent.html')'''
 
 
 class ActivateView(View):
@@ -130,7 +126,6 @@ class SignupView(View):
 
         return render(request, self.template_name, {'form': form})
 
-
 class UserLoginView(View):
     def get(self, request):
         form = UserLoginForm()
@@ -148,10 +143,10 @@ class UserLoginView(View):
 
                     return redirect(reverse('home'))
                 else:
-                    form.add_error(None, "Konto nie jest aktywne")
+                    form.add_error(None, "Your account is not active")
             else:
                 # user is None
-                form.add_error(None, "Nieprawidłowy login lub hasło")
+                form.add_error(None, "Wrong email or password")
         return render(request, "hana/login.html", {'form': form})
 
 
@@ -191,26 +186,8 @@ class SignUpView(View):
             return render(request, "hana/signup.html", {'form': form})
 '''
 
+class ExcelUploadView(LoginRequiredMixin, View):
 
-class PasswordResetView(View):
-    def get(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
-        form = PasswordResetForm()
-        return render(request, "hana/login.html", {"form": form})
-
-    def post(self, request, pk):
-        form = PasswordResetForm(request.POST)
-        if form.is_valid():
-            user = get_object_or_404(User, pk=pk)
-            user.set_password(form.cleaned_data["password"])
-            user.save()
-            messages.info(request, "Hasło dla użytkownika {} zostało zmienione".format(user.username))
-            login(request, user)
-            return redirect('index')
-        return render(request, "exercises/user_login.html", {"form": form})
-
-
-class ExcelUploadView(View):
     def get(self, request):
         return render(request, "hana/excel_upload.html")
 
@@ -228,15 +205,15 @@ class ExcelUploadView(View):
 
         # iterating over the rows and
         # getting value from each cell in row
-        for row in active_sheet.iter_rows(min_row=2, max_col=6):
+        for row in active_sheet.iter_rows(min_row=2, max_col=2):
             row_data = list()
             for cell in row:
                 row_data.append(str(cell.value))
             excel_data.append(row_data)
-            Task.objects.create(name=row_data[0], quantity=row_data[1],
-                                norm=row_data[2], priority=row_data[3],
-                                status=row_data[4], placed_date=row_data[5] )
-        return render(request, 'hana/excel_upload.html', {"excel_data": excel_data})
+            Task.objects.create(name=row_data[0], due_date=row_data[1], created_by=self.request.user)
+        print(excel_data)
+        return redirect("excel-table")
+        #return render(request, 'hana/excel_upload.html', {"excel_data": excel_data})
 
 class UsersListView(View):
     def get(self, request):
@@ -300,7 +277,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    success_url = '/'
+    success_url = reverse_lazy('home')
 
     def test_func(self):
         post = self.get_object()
@@ -318,58 +295,93 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         form.instance.post = post
         return super().form_valid(form)
-'''
-class ParseExcel(View):
-    def post(self, request, format=None):
-        try:
-            excel_file = request.FILES['files']
-        except MultiValueDictKeyError:
-            return redirect('home')
-
-        if (str(excel_file).split('.')[-1] == "xls"):
-            data = xls_get(excel_file, column_limit=7)
-        elif (str(excel_file).split('.')[-1] == "xlsx"):
-            data = xlsx_get(excel_file, column_limit=7)
-        else:
-            return redirect("home")
-
-        tasks = data["Task"]
-
-        if len(tasks > 1):  # we have task data
-            for task in tasks:
-                if (len(task) > 0):  # the row is not blank
-                    if (task[0] != "NO"):  # is not a header
-                        if (len(task) < 7):
-                            i = len(task)
-                            while (i < 7):
-                                task.append("")
-                                i += 1
-
-        c = Task.objects.filter(name=task[1])
-
-        if (c.count() == 0):
-            Task.objects.create(
-                name = task[1],
-                quantity = task[2],
-                norm = task[3],
-                priority = task[4],
-                status = task[5],
-                placed_date = task[6]
-            )
-
-            return render(request, 'hana/excel_sheet_upload.html', {"excel_file": excel_file})
-
-'''
 
 class ExcelTableView(ListView):
     model = Task
     template_name = 'hana/excel_view.html'
     context_object_name = 'tasks'
     paginate_by = 10
+    ordering = ['name']
 
-class ExcelTableAddView(CreateView):
-    model = Task
-    fields = "__all__"
+class TaskAutocompleteView(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated:
+            return Task.objects.none()
+
+        qs = Task.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs
+
+class TaskAddView(LoginRequiredMixin, CreateView):
+    form_class = AddEditTaskForm
+    template_name = "hana/task_create.html"
     success_url = reverse_lazy('excel-table')
 
+    def form_valid(self, form):
+        # form save
+        form.instance.created_by = self.request.user
+        self.object = form.save(commit=False)
+        self.object.save()
 
+        return super().form_valid(form)
+
+class TaskSearchView(View):
+    def get(self, request):
+        form = SearchForm()
+        return render(request, 'hana/search_form.html', locals())
+
+    def post(self, request):
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            query_string = form.cleaned_data["q"]
+            found_tasks = Task.objects.filter(name__icontains=query_string)
+            return render(request, 'hana/task_list.html', locals())
+
+class TaskSearchResultView(ListView):
+    model = Task
+    template_name = 'hana/task_list.html'
+    context_object_name = "found_tasks"
+
+
+    def get_queryset(self):
+        query_string = self.request.GET.get("q").strip()
+        if query_string:
+            found_tasks = Task.objects.filter(
+                Q(name__icontains=query_string) |
+                Q(note__icontains=query_string)
+                )
+        else:
+            found_tasks = Task.objects.none()
+            print(found_tasks)
+        return found_tasks
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query_string'] = self.request.GET.get("q")
+        return context
+
+class TaskDetailView(UpdateView):
+    model = Task
+    fields = "__all__"
+    template_name = "hana/task_detail.html"
+    success_url = 'excel-table'
+    login_url = "task-update"
+
+class TaskDeleteView(LoginRequiredMixin, DeleteView):
+    model = Task
+    success_url = reverse_lazy('excel-table')
+
+class EmployeeTaskView(LoginRequiredMixin, View):
+    def get(self, request, user_id):
+        tasks = Task.objects.filter(assigned_to=user_id)
+        return render(request, "hana/employee_task.html", {'tasks': tasks})
+'''
+class ToggleDoneUndoneView(LoginRequiredMixin, View):
+    def post(self,request, task_id):
+        task = get_object_or_404(Task, pk=task_id)
+'''

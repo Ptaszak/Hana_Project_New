@@ -1,0 +1,28 @@
+{% extends "base1.html" %}
+
+{% block title %}Search results{% endblock %}
+{% block content_title %}<h2 class="page_title">Search</h2>{% endblock %}
+
+{% block content %}
+
+  {% if found_tasks %}
+  <h2>{{found_tasks.count}} Search results for term: <b>"{{ query_string }}</b>"</h2>
+  <div class="post_list">
+    {% for f in found_tasks %}
+    <p>
+      <strong>
+        {{ forloop.counter }}.
+        <a href="{% url 'task-update' f.id %}">{{ f.name }}</a>
+      </strong>
+      <br />
+      <span class="minor">
+        <br /> Assigned to: {% if f.assigned_to %}{{ f.assigned_to }}{% else %}Not assigned{% endif %}
+
+      </span>
+    </p>
+    {% endfor %}
+  </div>
+  {% else %}
+    <h2> No results to show, sorry.</h2>
+  {% endif %}
+{% endblock %}
