@@ -1,0 +1,16 @@
+Hi {{ task.assigned_to.get_full_name }},
+
+A new task - {{ task.name }} has been assigned to you by {{ task.created_by.get_full_name }}:
+
+{% if task.note %}
+{% autoescape off %}
+Note: {{ task.note }}
+{% endautoescape %}
+{% endif %}
+
+Task details/comments:
+http://{{ site }}{% url 'task-detail' task.id %}
+
+Regards,
+
+Your boss,

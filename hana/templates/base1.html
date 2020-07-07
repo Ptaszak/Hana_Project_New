@@ -11,7 +11,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-
+    <script src="{% static 'js/hana.js' %}" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
 
     {% if title %}
@@ -74,13 +74,12 @@
         </div>
         <div class="col-md-3">
           <div class="content-section">
-            <h3>Our Sidebar</h3>
-            <p class='text-muted'>You can put any information here you'd like.
+            <h3>Employee Sidebar</h3>
               <ul class="list-group">
-              <a class="list-group-item list-group-item-light" href="{% url 'task-add' %}">New Task</a>
-                <li class="list-group-item list-group-item-light">Announcements</li>
-                <li class="list-group-item list-group-item-light">Calendars</li>
-                <li class="list-group-item list-group-item-light">etc</li>
+                  <a class="list-group-item list-group-item-light" href="{% url 'my-tasks' %}">My Task</a>
+                  <a class="list-group-item list-group-item-light" href="{% url 'my-posts' %}">My Posts</a>
+                <a class="list-group-item list-group-item-light" href="{% url 'post-create' %}">New Post</a>
+
               </ul>
             </p>
           </div>
@@ -119,18 +118,7 @@
       <!--Grid column-->
 
       <!--Grid column-->
-      <div class="col-md-6 mb-4">
 
-        <form class="input-group" method="GET" action = "search_result" >
-          <input type="text" class="form-control form-control-sm" name = "q" placeholder="Your email"
-            aria-label="Your email" aria-describedby="basic-addon2">
-            <br>
-
-
-          <div class="input-group-append">
-            <button class="btn btn-sm btn-outline-white my-0" type="button">Sign up</button>
-          </div>
-        </form>
 
       </div>
       <!--Grid column-->

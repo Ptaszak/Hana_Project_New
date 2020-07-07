@@ -92,12 +92,15 @@ class Task(models.Model):
         if self.due_date and datetime.date.today() > self.due_date:
             return True
 
+    def get_absolute_url(self):
+        return reverse("task_detail", kwargs={"task_id": self.id})
         # Auto-set the Task creation / completed date
 
     def save(self, **kwargs):
         # If Task is being marked complete, set the completed_date
-        if self.status == 3:
+        if self.completed:
             self.completed_date = datetime.datetime.now()
+            self.status = 3
         super(Task, self).save()
 
     def __str__(self):
@@ -107,6 +110,7 @@ class Task(models.Model):
 class Info(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=datetime.datetime.now)
     email_from = models.CharField(max_length=320, blank=True, null=True)
     email_message_id = models.CharField(max_length=255, blank=True, null=True)
     body = models.TextField(blank=True)

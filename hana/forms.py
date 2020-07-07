@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Comment, Task
+from .models import Profile, Comment, Task, Attachment, Info, TASK_STATUS
 from dal import autocomplete
 
 class UserLoginForm(forms.Form):
@@ -117,18 +117,28 @@ class PasswordResetForm(forms.Form):
 class AddEditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        exclude = ['created_by']
+        exclude = ["created_by"]
         widgets = {
             "due_date": forms.DateInput(attrs={'type':'date'}),
             "completed_date": forms.DateInput(attrs={'type': 'date'}),
             "name":forms.TextInput(),
             "note": forms.Textarea(),
         }
-# do przekazania w widoku
-        def clean_created_by(self):
-            return self.instance.created_by
 
 
 class SearchForm(forms.Form):
     """Search."""
     q = forms.CharField(widget=forms.widgets.TextInput(attrs={"size": 35}))
+
+class ModelFormWithFileField(forms.ModelForm):
+    class Meta:
+        model = Attachment
+        fields = ['file']
+
+class AddInfoForm(forms.ModelForm):
+    model = Info
+    fields =["body",]
+
+
+class TaskStatusFilterForm(forms.Form):
+    status = forms.ChoiceField(label="Filter by status:", choices=TASK_STATUS)

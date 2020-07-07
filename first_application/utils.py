@@ -8,7 +8,7 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django.template.loader import render_to_string
 
-from hana.models import Attachment, Comment, Task
+from hana.models import Attachment, Info, Task
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 def hana_send_mail(user, task, subject, body, recip_list):
     """Send an email attached to task, triggered by user"""
-    references = Comment.objects.filter(task=task).only("email_message_id")
+    references = Info.objects.filter(task=task).only("email_message_id")
     references = (ref.email_message_id for ref in references)
     references = " ".join(filter(bool, references))
 

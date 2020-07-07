@@ -1,35 +1,42 @@
-{% extends 'base1.html' %}
+
+
 {% block content %}
 
 {# Form used by both Add Task and Edit Task views #}
 
-<form action="" name="add_task" method="post">
+<form action="" name="add_task" method="POST">
   {% csrf_token %}
   <div class="mt-3">
     <div class="form-group">
       <label for="id_title" name="title">Task</label>
-      <input type="text" class="form-control" id="id_title" name="title" required placeholder="Task title"
-        value="{% if form.name.value %}{{ form.name.value }}{% endif %}">
+      <input type="text" class="form-control" id="id_title" name="name" required placeholder="Task title"
+        value="{% if task.name %}{{ task.name }}{% endif %}">
+    </div>
+
+   <div class="form-group">
+      <label for="id_status">Status :</label>
+     {{form.status}}
     </div>
 
     <div class="form-group">
       <label for="id_note">Description</label>
       <textarea class="form-control" id="id_note" name="note" rows="5"
-        aria-describedby="inputNoteHelp">{% if form.note.value %}{{ form.note.value }}{% endif %}</textarea>
+        aria-describedby="inputNoteHelp">{% if task.note %}{{ task.note }}{% endif %}</textarea>
       <small id="inputNoteHelp" class="form-text text-muted">
-        Describe the task or bug. Provide steps to reproduce the issue.
+        Describe the task.
       </small>
     </div>
 
     <div class="form-group">
       <label for="id_due_date">Due Date</label>
       <input type="date" class="form-control" id="id_due_date" name="due_date"
-        value="{% if form.due_date.value %}{{ form.due_date.value|date:"Y-m-d" }}{% endif %}">
+        value="{% if task.due_date %}{{ task.due_date|date:"Y-m-d" }}{% endif %}">
     </div>
 
     <div class="form-group">
-      <label for="id_assigned_to">Assigned To</label>
-      {{form.assigned_to}}
+      <label for="id_assigned_to">Assigned To: </label>
+        {% if form.assigned_to %} <strong> {{ form.assigned_to }}</strong> {% else %} {{ form.assigned_to }} {% endif %}
+
     </div>
 
     <div class="form-group">
@@ -39,19 +46,20 @@
           Notify
         </label>
         <small id="inputNotifyHelp" class="form-text text-muted">
-          Email notifications will only be sent if task is assigned to someone other than yourself.
+          Email notifications will only be sent if marked!
         </small>
       </div>
     </div>
 
     <input type="hidden" name="priority"
-      value="{% if form.priority.value %}{{ form.priority.value }}{% else %}999{% endif %}" id="id_priority">
+      value="{% if task.priority %}{{ task.priority}}{% else %}999{% endif %}" id="id_priority">
     <input type="hidden" name="completed" class="form-check-input" type="checkbox" checked="{%if task.completed%}checked{% endif %}" id="id_completed">
 
     <p>
-      <input type="submit" name="add_edit_task" value="Submit" class="btn btn-primary">
+      <input type="submit" name="add_edit_task" id ="submit" value="Submit" class="btn btn-primary">
     </p>
 
   </div>
 </form>
 {% endblock %}
+

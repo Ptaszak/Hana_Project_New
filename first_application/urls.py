@@ -18,11 +18,11 @@ from django.urls import path, reverse_lazy
 
 import hana
 from hana import views as ex_views
+from hana import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from hana.tokens import account_activation_token
-from hana.search import search
 
 app_name = "hana"
 
@@ -34,7 +34,8 @@ urlpatterns = [
     path('post/new/', ex_views.PostCreateView.as_view(), name='post-create'),
     path('post/<int:pk>/update/', ex_views.PostUpdateView.as_view(), name='post-update'),
     path('post/<int:pk>/delete/', ex_views.PostDeleteView.as_view(), name='post-delete'),
-    path('post/<int:pk>/comment/', ex_views.CommentCreateView.as_view(), name='add-comment'),
+    path('post/<int:pk>/comment/', ex_views.PostCommentCreateView.as_view(), name='add-comment'),
+    path('my_posts/', ex_views.EmployeePostkView.as_view(), name='my-posts'),
     path('signup/', ex_views.SignupView.as_view(), name="signup"),
     path('profile/', ex_views.UserView.as_view(), name='profile'),
     # path('sent/', ex_views.ActivationSentView.as_view(), name="activation_sent"),
@@ -70,15 +71,24 @@ urlpatterns = [
         name='reset_password_complete'),
     path('excel_upload', ex_views.ExcelUploadView.as_view(), name='excel-upload'),
     path('user_list', ex_views.UsersListView.as_view(), name = "user-list"),
+    path('user/<int:pk>/delete', ex_views.UserDeleteView.as_view(), name = "user-delete"),
+    path('user/<int:pk>/update', ex_views.UserUpdateView.as_view(), name = "user-update"),
     path('excel_table', ex_views.ExcelTableView.as_view(), name = "excel-table"),
     path("task/add", ex_views.TaskAddView.as_view(), name="task-add"),
-    path("task/<int:pk>/", ex_views.TaskDetailView.as_view(), name="task-update"),
-    path("task/add/autocomplete/", ex_views.TaskAutocompleteView.as_view(), name = "task_autocomplete"),
-    path('tasks/<int:user_id>/', ex_views.EmployeeTaskView.as_view(), name="my-tasks"),
+    path("task/<int:task_id>/", ex_views.TaskDetailView.as_view(), name="task-detail"),
+    path("task/<int:pk>/edit", ex_views.TaskEditView.as_view(), name="task-update"),
+    path("task/allocate", ex_views.TaskAllocateView.as_view(), name="task-allocate"),
+    path("search/autocomplete/", ex_views.TaskAutocompleteView.as_view(), name = "task_autocomplete_search"),
+    path('my_tasks/', ex_views.EmployeeTaskView.as_view(), name="my-tasks"),
     path('task/<int:pk>/delete', ex_views.TaskDeleteView.as_view(), name="task-delete"),
-    path("search/", ex_views.TaskSearchView.as_view(), name="search"),
-    #path("search_task/", ex_views.TaskSearchView2.as_view(), name="search"),
+    # comment delete
+    path('task/<int:pk>/delete_comment', ex_views.InfoDeleteView.as_view(), name="comment-delete"),
+    path("task_status_filter/", ex_views.TaskStatusFilterView.as_view(), name="filter"),
     path("search_result/", ex_views.TaskSearchResultView.as_view(), name="search_result"),
+    path("task/<int:pk>/add_attachement/", ex_views.AddAttachementView.as_view(), name = "add-attachement"),
+    #path("attachement/<int:pk>/delete", ex_views.RemoveAttachementView.as_view(), name = "delete-attachement"),
+    path("toggle/<int:task_id>/", ex_views.ToggleDoneUndoneView.as_view(), name = "toggle"),
+
 
 
 ]
