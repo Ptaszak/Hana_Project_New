@@ -1,0 +1,67 @@
+{% extends 'base1.html' %}
+{% block content %}
+<h2>Task list</h2>
+    {% block extrahead %}
+<style>
+.select2 {
+    width: 100% !important;
+}
+
+.select2-container {
+    min-width: 0 !important;
+}
+</style>
+{{ form.media }}
+{{ merge_form.media }}
+{% endblock %}
+<form method="POST" action="{% url "task-allocate" %}" role="form" class="d-inline">
+            {% csrf_token %}
+            <div style="display:inline;">
+              <button class="btn btn-info btn-sm" type="submit" name="task_allocate">
+               Task Allocate
+              </button>
+            </div>
+          </form>
+
+<form method="GET" action="" role="form" class="d-inline">
+            <div style="display:inline;" class="col noPadding step right d-flex justify-content-end mb-2">
+                {{ filter.form }}
+              <button class="btn btn-secondary btn-sm" type="submit" name="Filter">
+               Filter
+              </button>
+            </div>
+          </form>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Task name</th>
+      <th scope="col">Created</th>
+      <th scope="col">Due date</th>
+      <th scope="col">Status</th>
+      <th scope="col">Assigned</th>
+
+    </tr>
+  </thead>
+  <tbody>
+{% for t in tasks %}
+    <tr>
+
+        <td>{{forloop.counter0|add:page_obj.start_index}}</td>
+        <td><a href="{% url 'task-detail' t.id %}">{{ t.name }}</a></td>
+        <td>{{ t.placed_date }}</td>
+        <td>{{ t.due_date|date }}</td>
+        <td>{{ t.get_status_display }}</td>
+        <td>{{ t.assigned_to}}</td>
+        <td><a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'task-delete' t.id %}">Delete</a>
+    <td><a class="btn btn-success btn-sm mt-1 mb-1" href="{% url 'task-update' t.pk %}">Edit</a></td>
+
+{% endfor %}
+  </tbody>
+</table>
+<hr>
+    <a href="{% url 'task-add' %}"><button type="button" class="btn btn-secondary">Add Task</button></a>
+   <hr>
+ {% include 'include/pagination.html' %}
+{% endblock %}

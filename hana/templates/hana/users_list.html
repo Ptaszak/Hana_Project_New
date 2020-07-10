@@ -1,6 +1,6 @@
 {% extends 'base1.html' %}
 {% block content %}
-<h2>Lista Użytkowników</h2>
+<h2>Employees</h2>
 
 <table class="table table-striped">
   <thead>
@@ -11,6 +11,7 @@
       <th scope="col">Last Name</th>
       <th scope="col">Email</th>
       <th scope="col">Group</th>
+       <th scope="col">Action</th>
     </tr>
   </thead>
   <tbody>
@@ -22,11 +23,13 @@
         <td>{{ u.last_name }}</td>
         <td>{{ u.email }}</td>
         <td>{{ u.groups.all.last }}</td>
+        <td><a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'user-delete' u.id %}">Delete</a>
+            <a class="btn btn-success btn-sm mt-1 mb-1" href="{% url 'user-update' u.id %}">Edit</a></td>
     </tr>
 {% endfor %}
   </tbody>
 </table>
 <hr>
-    <a href="{% url 'signup' %}"><button type="button" class="btn btn-secondary">Add employee</button></a>
+    <a href="{% url 'signup' %}"><button type="button" class="btn btn-success">Add employee</button></a>
 
 {% endblock %}

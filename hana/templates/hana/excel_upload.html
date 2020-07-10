@@ -22,15 +22,15 @@
   <thead>
     <tr>
       <th scope="col">#</th>
-      <th scope="col">First</th>
-      <th scope="col">Last</th>
-      <th scope="col">Handle</th>
+      <th scope="col">Task name</th>
+        <th scope="col">Date</th>
+
     </tr>
   </thead>
 </table>
 {% for row in excel_data %} &nbsp;&nbsp;&nbsp;&nbsp;
     {{ forloop.counter }} &nbsp;&nbsp;&nbsp;&nbsp;
-    {% for cell in row %} &nbsp;&nbsp;&nbsp;&nbsp;
+    {% for cell in row %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         {{ cell }}&nbsp;&nbsp;&nbsp;&nbsp;
 
 {% endfor %}

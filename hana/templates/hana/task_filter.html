@@ -1,0 +1,40 @@
+{% extends "base1.html" %}
+{% block content %}
+    <div class="content-section left-align">
+         <form action="" method="get">
+        {{ filter.form.as_p }}
+        <input type="submit" />
+    </form>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Task name</th>
+      <th scope="col">Created</th>
+      <th scope="col">Due date</th>
+      <th scope="col">Status</th>
+      <th scope="col">Assigned</th>
+
+    </tr>
+  </thead>
+  <tbody>
+{% for t in tasks %}
+    <tr>
+
+        <td>{{forloop.counter0|add:page_obj.start_index}}</td>
+        <td><a href="{% url 'task-detail' t.id %}">{{ t.name }}</a></td>
+        <td>{{ t.placed_date }}</td>
+        <td>{{ t.due_date|date }}</td>
+        <td>{{ t.get_status_display }}</td>
+        <td>{{ t.assigned_to}}</td>
+        <td><a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'task-delete' t.id %}">Delete</a>
+    <td><a class="btn btn-success btn-sm mt-1 mb-1" href="{% url 'task-update' t.pk %}">Edit</a></td>
+
+{% endfor %}
+  </tbody>
+</table>
+<hr>
+    <a href="{% url 'task-add' %}"><button type="button" class="btn btn-secondary">Add Task</button></a>
+   <hr>
+ {% include 'include/pagination.html' %}
+{% endblock %}
