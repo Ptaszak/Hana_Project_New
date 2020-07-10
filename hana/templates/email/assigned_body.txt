@@ -9,7 +9,7 @@ Note: {{ task.note }}
 {% endif %}
 
 Task details/comments:
-http://{{ site }}{% url 'task-detail' task.id %}
+http://{{ site }}{% url 'task-update' task.id %}
 
 Regards,
 

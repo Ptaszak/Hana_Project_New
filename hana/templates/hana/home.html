@@ -17,7 +17,9 @@
           </div>
         </article>
     {% endfor %}
-
+<hr>
+    <a href="{% url 'post-create' %}"><button type="button" class="btn btn-success">New Post</button></a>
+    <hr>
  {% include 'include/pagination.html' %}
 
 {% endblock content %}

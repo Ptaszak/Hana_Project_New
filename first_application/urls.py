@@ -83,7 +83,6 @@ urlpatterns = [
     path('task/<int:pk>/delete', ex_views.TaskDeleteView.as_view(), name="task-delete"),
     # comment delete
     path('task/<int:pk>/delete_comment', ex_views.InfoDeleteView.as_view(), name="comment-delete"),
-    path("task_status_filter/", ex_views.TaskStatusFilterView.as_view(), name="filter"),
     path("search_result/", ex_views.TaskSearchResultView.as_view(), name="search_result"),
     path("task/<int:pk>/add_attachement/", ex_views.AddAttachementView.as_view(), name = "add-attachement"),
     #path("attachement/<int:pk>/delete", ex_views.RemoveAttachementView.as_view(), name = "delete-attachement"),

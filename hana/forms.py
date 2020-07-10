@@ -125,6 +125,17 @@ class AddEditTaskForm(forms.ModelForm):
             "note": forms.Textarea(),
         }
 
+class AddEditTaskForm2(forms.ModelForm):
+    class Meta:
+        model = Task
+        exclude = ["created_by", "assigned_to"]
+        widgets = {
+            "due_date": forms.DateInput(attrs={'type':'date'}),
+            "completed_date": forms.DateInput(attrs={'type': 'date'}),
+            "name":forms.TextInput(),
+            "note": forms.Textarea(),
+        }
+
 
 class SearchForm(forms.Form):
     """Search."""
@@ -141,4 +152,4 @@ class AddInfoForm(forms.ModelForm):
 
 
 class TaskStatusFilterForm(forms.Form):
-    status = forms.ChoiceField(label="Filter by status:", choices=TASK_STATUS)
+    a = forms.ChoiceField(label="Filter by status:", choices=TASK_STATUS)

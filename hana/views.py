@@ -13,7 +13,7 @@ from .tokens import account_activation_token
 from django.views.generic import CreateView, DeleteView, UpdateView, ListView, DetailView
 from django.contrib import messages
 from .forms import *
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from dal import autocomplete
 from django.core.mail import EmailMessage
 import openpyxl
@@ -22,7 +22,10 @@ from .models import *
 from .forms import SignUpForm
 from django.db.models import Q
 import random
+from django_filters.views import FilterView
+from hana.filter import TaskFilter
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
@@ -198,12 +201,17 @@ class UsersListView(View):
         return render(request, "hana/users_list.html", {'users': users})
 
 
-class UserDeleteView(DeleteView):
+class UserDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = 'auth.delete_user'
+    raise_exception = True
+    permission_denied_message = "You are not authorized for this action!"
+
     model = User
     success_url = reverse_lazy('user-list')
     template_name = "hana/employee_confirm_delete.html"
 
-class UserUpdateView(UpdateView):
+class UserUpdateView(LoginRequiredMixin, UpdateView):
+
     model = User
     success_url = reverse_lazy('user-list')
     form_class = SignUpForm
@@ -294,13 +302,13 @@ class EmployeePostkView(LoginRequiredMixin, View):
         return redirect(reverse('user-login'))
 
 
-class ExcelTableView(ListView):
+class ExcelTableView(FilterView):
     model = Task
     template_name = 'hana/excel_view.html'
     context_object_name = 'tasks'
     paginate_by = 10
+    filterset_class = TaskFilter
     ordering = ['name']
-
 
 class TaskAutocompleteView(LoginRequiredMixin, autocomplete.Select2QuerySetView):
 
@@ -357,8 +365,14 @@ class TaskSearchResultView(ListView):
 
 class TaskEditView(LoginRequiredMixin, UpdateView):
     model = Task
-    form_class = AddEditTaskForm
-    success_url = reverse_lazy('excel-table')
+    form_class = AddEditTaskForm2
+
+
+    def get_success_url(self):
+        if self.request.user.groups.filter(name="Team Leader").exists():
+            return reverse('excel-table')
+        else:
+            return reverse('my-tasks')
 
 
 class TaskDetailView(LoginRequiredMixin, View):
@@ -443,6 +457,12 @@ class TaskAllocateView(View):
 
             return redirect(reverse("excel-table"))
         return redirect(reverse("excel-table"))
+
+class ExportToExcelView(View):
+    def post(self, request):
+        if request.POST.get("export_to_excel") is not None:
+            wb = openpyxl.Workbook()
+            sheet = wb.active
 
 class TaskDeleteView(LoginRequiredMixin, DeleteView):
     model = Task
@@ -535,7 +555,7 @@ class InfoDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('task-detail', args=(self.object.task.id,))
-
+'''
 class TaskStatusFilterView(View):
     def get(self, request):
         form = TaskStatusFilterForm()
@@ -544,7 +564,23 @@ class TaskStatusFilterView(View):
     def post(self, request):
         form = TaskStatusFilterForm(request.POST)
         if form.is_valid():
-            status = Task.objects.filter(
-                status=form.cleaned_data['status']
-            )
-        return render(request, "hana/excel_view.html", locals())
+            tasks = Task.objects.filter(status=form.cleaned_data['status'])
+            paginator = Paginator(tasks, 10)
+
+            page = int(request.GET.get("page", 1))
+            try:
+                tasks = paginator.page(page)
+            except PageNotAnInteger:
+                tasks = paginator.page(1)
+            except EmptyPage:
+                tasks = paginator.page(paginator.num_pages)
+
+            tasks = paginator.get_page(page)
+
+            ctx={
+                'form': form,
+                'tasks':tasks,
+                'page':page
+                }
+            return render(request, "hana/excel_view.html", ctx)
+'''

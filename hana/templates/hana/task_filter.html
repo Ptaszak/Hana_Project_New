@@ -1,37 +1,10 @@
-{% extends 'base1.html' %}
+{% extends "base1.html" %}
 {% block content %}
-<h2>Task list</h2>
-    {% block extrahead %}
-<style>
-.select2 {
-    width: 100% !important;
-}
-
-.select2-container {
-    min-width: 0 !important;
-}
-</style>
-{{ form.media }}
-{{ merge_form.media }}
-{% endblock %}
-<form method="POST" action="{% url "task-allocate" %}" role="form" class="d-inline">
-            {% csrf_token %}
-            <div style="display:inline;">
-              <button class="btn btn-info btn-sm" type="submit" name="task_allocate">
-               Task Allocate
-              </button>
-            </div>
-          </form>
-
-<form method="GET" action="" role="form" class="d-inline">
-            <div style="display:inline;" class="col noPadding step right d-flex justify-content-end mb-2">
-                {{ filter.form }}
-              <button class="btn btn-secondary btn-sm" type="submit" name="Filter">
-               Filter
-              </button>
-            </div>
-          </form>
-
+    <div class="content-section left-align">
+         <form action="" method="get">
+        {{ filter.form.as_p }}
+        <input type="submit" />
+    </form>
 <table class="table table-striped">
   <thead>
     <tr>

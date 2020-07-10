@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'dal',
     'dal_select2',
+    'django_filters',
 
 
 ]
